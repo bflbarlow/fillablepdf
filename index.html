@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FillablePDF — Fillable PDF Designer</title>
+    <!-- Theme initialization (runs before CSS paints) -->
+    <script>
+      (function () {
+        var saved = localStorage.getItem('fillablepdf-theme');
+        var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', theme);
+      })();
+    </script>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232563EB' stroke-width='2'%3E%3Cpath d='M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z'/%3E%3Cpolyline points='14 2 14 8 20 8'/%3E%3Cpath d='M8 13h8M8 17h5'/%3E%3C/svg%3E">
+</head>
+<body>
+    <!-- Accessibility: screen reader heading -->
+    <h1 class="sr-only">FillablePDF — Fillable PDF Designer</h1>
+    <a href="#canvas-container" class="skip-link">Skip to document</a>
+
+    <!-- ===== APP TOOLBAR ===== -->
+    <div id="toolbar">
+        <!-- App logo -->
+        <a class="app-logo" href="about.html">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px">
+                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <path d="M8 13h8M8 17h5"/>
+            </svg>
+            FillablePDF
+        </a>
+        <div class="toolbar-divider"></div>
+
+        <!-- Theme toggle -->
+        <button id="theme-toggle" title="Toggle theme (Alt+T)">
+            <svg class="theme-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+            </svg>
+            <svg class="theme-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none">
+                <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+            </svg>
+        </button>
+        <div class="toolbar-divider"></div>
+
+        <!-- [SECTION_START: FILE_OPS] — File operations -->
+        <button class="tool-btn" id="btn-new" title="New blank document">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>
+            </svg>
+        </button>
+        <button class="tool-btn" id="btn-open-pdf" title="Open PDF file">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
+            </svg>
+            <span class="btn-label">PDF</span>
+        </button>
+        <button class="tool-btn" id="btn-save" title="Save project (Ctrl+S)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>
+            </svg>
+            <span class="save-dot" id="save-dot" style="display:none"></span>
+        </button>
+        <button class="tool-btn" id="btn-load" title="Open project (Ctrl+O)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/>
+            </svg>
+        </button>
+        <button class="tool-btn tool-btn-primary" id="btn-export-pdf" title="Export fillable PDF (Ctrl+E)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            <span class="btn-label">Export PDF</span>
+        </button>
+        <!-- [SECTION_END: FILE_OPS] -->
+
+        <div class="toolbar-divider"></div>
+
+        <!-- [SECTION_START: TOOLS] — Field tools -->
+        <button class="tool-btn active" data-tool="select" title="Select / move (V)">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/>
+            </svg>
+        </button>
+        <button class="tool-btn" data-tool="text" title="Text field (T)">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/>
+            </svg>
+        </button>
+        <button class="tool-btn" data-tool="textarea" title="Multiline text field">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="4" width="18" height="16" rx="2"/><line x1="7" y1="9" x2="17" y2="9"/><line x1="7" y1="13" x2="17" y2="13"/><line x1="7" y1="17" x2="12" y2="17"/>
+            </svg>
+        </button>
+        <button class="tool-btn" data-tool="date" title="Date field">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+        </button>
+        <button class="tool-btn" data-tool="checkbox" title="Checkbox">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2"/><polyline points="8 12 11 15 16 9"/>
+            </svg>
+        </button>
+        <button class="tool-btn" data-tool="radio" title="Radio button">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5" fill="currentColor" stroke="none"/>
+            </svg>
+        </button>
+        <button class="tool-btn" data-tool="dropdown" title="Dropdown">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="6" width="18" height="12" rx="2"/><polyline points="15 10 17 12 15 14"/>
+            </svg>
+        </button>
+        <button class="tool-btn" data-tool="signature" title="Signature line (typed)">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 18c3 0 4-8 7-8s2 6 5 6 3-3 6-3"/><line x1="3" y1="21" x2="21" y2="21"/>
+            </svg>
+        </button>
+        <!-- [SECTION_END: TOOLS] -->
+
+        <div class="toolbar-divider"></div>
+
+        <!-- [SECTION_START: ACTIONS] — Undo/Redo/Delete/Duplicate -->
+        <button class="tool-btn" id="btn-undo" title="Undo (Ctrl+Z)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+            </svg>
+        </button>
+        <button class="tool-btn" id="btn-redo" title="Redo (Ctrl+Y)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.13-9.36L23 10"/>
+            </svg>
+        </button>
+        <div class="toolbar-divider"></div>
+        <button class="tool-btn" id="btn-duplicate" title="Duplicate (Ctrl+D)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+            </svg>
+        </button>
+        <button class="tool-btn" id="btn-delete" title="Delete (Del)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+            </svg>
+        </button>
+        <!-- [SECTION_END: ACTIONS] -->
+    </div>
+
+    <!-- ===== CANVAS & WORKSPACE ===== -->
+    <div id="readonly-banner" class="readonly-banner" style="display:none" role="alert">Read-only — another tab is editing</div>
+
+    <div id="canvas-container" aria-label="FillablePDF document canvas" role="application">
+        <div id="canvas">
+            <div id="grid-layer"></div>
+            <div id="pages-layer"></div>
+            <div id="preview-layer"></div>
+        </div>
+
+        <!-- Empty state / drop zone -->
+        <div id="start-overlay" class="start-overlay">
+            <div class="start-card">
+                <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                    <path d="M8 13h8M8 17h5"/>
+                </svg>
+                <h2>Create a fillable PDF</h2>
+                <p>Drop a PDF here, or start from a blank page. Everything runs in your browser — your files never leave your device.</p>
+                <div class="start-actions">
+                    <button class="btn-primary" id="start-open-pdf">Choose PDF…</button>
+                    <button class="btn-secondary" id="start-blank">Start blank</button>
+                </div>
+                <div class="start-hint">
+                    <button class="size-chip" data-size="letter">Letter</button>
+                    <button class="size-chip" data-size="a4">A4</button>
+                    <button class="size-chip" data-size="legal">Legal</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Zoom bar -->
+        <div id="zoom-bar" class="zoom-bar">
+            <button id="zoom-out" title="Zoom out">−</button>
+            <span id="zoom-level" class="zoom-level">100%</span>
+            <button id="zoom-in" title="Zoom in">+</button>
+            <button id="zoom-fit" title="Fit width" class="zoom-fit">Fit</button>
+        </div>
+    </div>
+
+    <!-- ===== PROPERTIES PANE ===== -->
+    <div id="properties-panel">
+        <div id="panel-resize-handle" title="Drag to resize panel"></div>
+        <div class="panel-header" id="panel-header">
+            <span id="panel-title" style="display:none"></span>
+            <div class="panel-tabs">
+                <button class="panel-tab active" data-tab="properties">Properties</button>
+                <button class="panel-tab" data-tab="layers">Fields</button>
+            </div>
+            <button id="btn-collapse-panel" class="collapse-btn" title="Collapse panel (Ctrl+\)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="15 18 9 12 15 6"/>
+                </svg>
+            </button>
+        </div>
+        <div class="panel-scroll">
+
+            <!-- [SECTION_START: PROJECT_SECTION] — Document-level properties -->
+            <div class="panel-section panel-project" id="sec-project">
+                <button class="panel-toggle" aria-expanded="true" aria-controls="sec-project-body">
+                    <h4>Document</h4>
+                    <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="panel-body" id="sec-project-body">
+                    <div class="prop-row"><label>Project Name <input type="text" id="project-name" placeholder="Untitled"></label></div>
+                    <div class="prop-row"><label>Pages <input type="text" id="doc-pages" readonly value="0"></label></div>
+                    <div class="prop-row"><label>Fields <input type="text" id="doc-fields" readonly value="0"></label></div>
+                    <div class="prop-row"><label>Default field name <input type="text" id="doc-prefix" value="field"></label></div>
+                    <div class="prop-row"><label class="check-row"><input type="checkbox" id="export-flatten"> Flatten fields on export</label></div>
+                </div>
+            </div>
+            <!-- [SECTION_END: PROJECT_SECTION] -->
+
+            <!-- [SECTION_START: SHAPE_SECTION] — Field properties -->
+            <div class="panel-section panel-shape" id="sec-name" style="display:none">
+                <button class="panel-toggle" aria-expanded="true" aria-controls="sec-name-body">
+                    <h4>Field</h4>
+                    <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="panel-body" id="sec-name-body">
+                    <div class="prop-row"><label>Label <input type="text" id="prop-name" placeholder="field name..."></label></div>
+                    <div class="prop-row"><label>Type <input type="text" id="prop-type" readonly></label></div>
+                </div>
+            </div>
+            <div class="panel-section panel-shape" id="sec-geometry" style="display:none">
+                <button class="panel-toggle" aria-expanded="true" aria-controls="sec-geometry-body">
+                    <h4>Geometry</h4>
+                    <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="panel-body" id="sec-geometry-body">
+                    <div class="prop-row"><label>Page <input type="number" id="prop-page" min="1" step="1"></label></div>
+                    <div class="prop-row"><label>X <input type="number" id="prop-x" step="1"></label><label>Y <input type="number" id="prop-y" step="1"></label></div>
+                    <div class="prop-row"><label>W <input type="number" id="prop-width" min="4" step="1"></label><label>H <input type="number" id="prop-height" min="4" step="1"></label></div>
+                    <div class="prop-row tiny"><span id="prop-size-info"></span></div>
+                </div>
+            </div>
+            <div class="panel-section panel-shape" id="sec-value" style="display:none">
+                <button class="panel-toggle" aria-expanded="true" aria-controls="sec-value-body">
+                    <h4>Value &amp; Behaviour</h4>
+                    <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="panel-body" id="sec-value-body">
+                    <div class="prop-row" id="row-default"><label>Default value <input type="text" id="prop-default" placeholder="(empty)"></label></div>
+                    <div class="prop-row" id="row-checked" style="display:none"><label class="check-row"><input type="checkbox" id="prop-checked"> Checked by default</label></div>
+                    <div class="prop-row" id="row-options" style="display:none"><label>Options <textarea id="prop-options" rows="4" placeholder="One option per line"></textarea></label></div>
+                    <div class="prop-row" id="row-group" style="display:none"><label>Radio group <input type="text" id="prop-group" placeholder="group name"></label></div>
+                    <div class="prop-row" id="row-radio-value" style="display:none"><label>Option value <input type="text" id="prop-radio-value" placeholder="value"></label></div>
+                    <div class="prop-row"><label class="check-row"><input type="checkbox" id="prop-required"> Required</label></div>
+                    <div class="prop-row" id="row-readonly"><label class="check-row"><input type="checkbox" id="prop-readonly"> Read-only</label></div>
+                </div>
+            </div>
+            <div class="panel-section panel-shape panel-shape-style" id="sec-style" style="display:none">
+                <button class="panel-toggle" aria-expanded="true" aria-controls="sec-style-body">
+                    <h4>Appearance</h4>
+                    <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="panel-body" id="sec-style-body">
+                    <div class="prop-row"><label>Font size <input type="number" id="prop-fontSize" min="6" max="72" step="1"></label><label>Border W <input type="number" id="prop-borderWidth" min="0" max="8" step="0.5"></label></div>
+                    <div class="prop-row"><label>Text color <input type="color" id="prop-textColor"></label><label>Border color <input type="color" id="prop-borderColor"></label></div>
+                    <div class="prop-row"><label>Fill color <input type="color" id="prop-fill"></label><label>Align <select id="prop-align">
+                        <option value="left">Left</option>
+                        <option value="center">Center</option>
+                        <option value="right">Right</option>
+                    </select></label></div>
+                </div>
+            </div>
+            <!-- [SECTION_END: SHAPE_SECTION] -->
+
+        </div><!-- end panel-scroll -->
+
+        <!-- Fields / Layers tab content -->
+        <div id="panel-layers" class="panel-layers-content" style="display:none">
+            <div class="panel-layers-toolbar">
+                <span id="layers-count">0 fields</span>
+                <button id="btn-clear-fields" class="link-btn" title="Remove all fields">Clear all</button>
+            </div>
+            <div class="layer-list" id="layer-list"></div>
+        </div>
+
+        <!-- Action Log (inside panel) -->
+        <div class="panel-log">
+            <div class="log-header" id="log-header">
+                <span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:3px">
+                        <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+                        <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+                    </svg>
+                    Action Log
+                </span>
+                <button id="log-toggle" title="Toggle log">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="log-body" id="log-body" aria-live="polite"></div>
+        </div>
+    </div>
+
+    <!-- Context Menu -->
+    <div id="context-menu" class="hidden">
+        <div class="context-item" data-action="duplicate">Duplicate</div>
+        <div class="context-item" data-action="delete">Delete</div>
+        <div class="context-divider"></div>
+        <div class="context-item" data-action="bring-forward">Bring Forward</div>
+        <div class="context-item" data-action="send-backward">Send Backward</div>
+    </div>
+
+    <!-- Text Editor overlay (kept for template compatibility) -->
+    <div id="text-editor" class="hidden">
+        <textarea id="text-input"></textarea>
+    </div>
+
+    <!-- Hidden file inputs -->
+    <input type="file" id="file-pdf" accept="application/pdf,.pdf" style="display:none">
+    <input type="file" id="file-project" accept="application/json,.json,.fillablepdf" style="display:none">
+
+    <!-- Vendor libraries (bundled locally; fully client-side) -->
+    <script src="vendor/pdf-lib.min.js"></script>
+    <script src="vendor/pdf.min.js"></script>
+
+    <!-- UI interaction layer -->
+    <script src="ui.js"></script>
+
+    <!-- App-specific logic -->
+    <script src="app.js"></script>
+</body>
+</html>
