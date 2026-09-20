@@ -1,8 +1,6 @@
-# FillablePDF
+# FillablePDF — v0.1
 
-Create **fillable PDFs entirely in the browser**. Open an existing PDF (or start
-from a blank page), drop form fields on top of it, and export a real AcroForm PDF
-that can be filled in any PDF reader.
+A browser-based fillable PDF designer for the [Free Open Tools](https://freeopentools.com/) suite. Open an existing PDF (or start from a blank page), drop form fields on top of it, and export a real AcroForm PDF that can be filled in any reader — all in the browser, with no upload to any server.
 
 No server, no upload, no account — every byte stays on the user's device.
 
@@ -38,12 +36,13 @@ python3 -m http.server 8080
 Opening `index.html` directly via `file://` also works in most browsers; PDF.js
 falls back to an in-page worker if the worker file cannot be loaded.
 
-## Project structure
+## File Structure
 
 ```
 fillablepdf/
 ├── index.html      # Editor layout (toolbar, canvas, properties pane)
-├── about.html      # About / help page
+├── about/
+│   └── index.html  # Standalone about page
 ├── styles.css      # Free Open Tools ecosystem styles + app styles
 ├── ui.js           # Shared UI layer (theme, panel, autosave, toolbar hooks)
 ├── app.js          # FillablePDF domain logic (render, fields, export)

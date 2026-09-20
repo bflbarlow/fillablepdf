@@ -16,6 +16,8 @@
     // ─────────────────────────────────────────────────────────────
     // Constants
     // ─────────────────────────────────────────────────────────────
+    var APP_VERSION = 'v0.1';
+
     var PAGE_SIZES = {
         letter: [612, 792],
         legal: [612, 1008],
@@ -1115,7 +1117,7 @@
     window.getAppState = function () {
         return {
             app: 'fillablepdf',
-            version: 1,
+            version: APP_VERSION,
             name: state.name,
             prefix: state.prefix,
             flatten: state.flatten,
